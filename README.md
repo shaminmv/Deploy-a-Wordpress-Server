@@ -8,6 +8,9 @@ I use [cmder](https://cmder.net/) when on windows, else the shell. You are free 
 The instance are created from iso images, so better update. ```$ apt-get update```
 ```$ apt-get upgrade``` or you can run ```apt-get update && apt-get upgrade```
 
+Now install sudo
+``` apt-get install sudo ```
+
 Create a new user account using the adduser command. Don’t forget to replace username with your desired user name:
 
 ```adduser username```
@@ -35,6 +38,9 @@ Is the information correct? [Y/n] Y
 Now Add the user to the sudo group
 By default on Debian systems, members of the group sudo are granted with sudo access. To add a user to the sudo group use the usermod command:
 ```usermod -aG sudo username```
+
+Exit and close the session and connect as the user you created.
+
 Use the sudo command to run the whoami command:
 ```
 sudo whoami
@@ -55,7 +61,7 @@ root
 
 ## 4. Install some components we will be needing on the way.
 Debian already comes with lots of pre install component but we need some like zsh and git. Lets do it
-```apt-get install -y git zsh curl apt-transport-https```
+```sudo apt-get install -y git zsh curl apt-transport-https```
 
 ## 5. Install zsh and make things pretty. :)
 Want to know more about zsh? Check [zsh](https://ohmyz.sh/)
@@ -68,11 +74,11 @@ First, let's check what version is the latest in the apt repository: $ apt-cache
 
 ```
 $ cat /etc/*-release 
-$ echo "deb https://nginx.org/packages/debian/ stretch nginx" > \
+$ echo "deb https://nginx.org/packages/debian/ stretch nginx" > sudo \
   /etc/apt/sources.list.d/nginx.list
-$ curl -vs https://nginx.org/keys/nginx_signing.key | apt-key add -
-$ apt-get update && apt-get install -y nginx
-$ service nginx start
+$  curl -vs https://nginx.org/keys/nginx_signing.key | sudo apt-key add -
+$ sudo apt-get update && sudo apt-get install -y nginx
+$ sudo service nginx start
 $ ifconfig
 ```
 ifconfig  will give you the ip. Open the Ip on browser and you should see Nginx. If this is the first time you are installing Nginx Congratulations!
@@ -81,7 +87,9 @@ ifconfig  will give you the ip. Open the Ip on browser and you should see Nginx.
 I will be using MariaDB for this but you can use Percona MySQL or MySql of your choice. 
 ```sudo apt-get install mariadb-server mariadb-client```
 After that, run the commands below to secure MariaDB server by creating a root password and disallowing remote root access.
-```sudo service mariadb restart```
+```
+sudo mysql_secure_installation
+```
 To test if MariaDB is installed, type the commands below to logon to MariaDB server
 ```sudo mysql -u root -p```
 ```
@@ -98,21 +106,52 @@ Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
 MariaDB [(none)]>
 ```
+Restart MariaDB server
+```sudo systemctl restart mysql.service```
 
-## 8. Install Install PHP / PHP 7.3
-```sudo apt -y install php php-common```
-Confirm PHP version.
+
+## 8. Install Install PHP
+Just like with Nginx, we need to create two files: the apt source file, which points to the repository and key file, which is used to verify the integrity of the repository:
 ```
-hiraschool@HIRA:~$ php -v
-PHP 7.3.4-2 (cli) (built: Apr 13 2019 19:05:48) ( NTS )
-Copyright (c) 1997-2018 The PHP Group
-Zend Engine v3.3.4, Copyright (c) 1998-2018 Zend Technologies
-    with Zend OPcache v7.3.4-2, Copyright (c) 1999-2018, by Zend Technologies
+$ echo "deb https://packages.sury.org/php/ stretch main" > sudo \
+  /etc/apt/sources.list.d/php.list
+$ sudo curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 ```
-Next, run the commands below to install PHP 7.3 and related modules.
-```sudo apt install php7.3-fpm php7.3-common php7.3-mbstring php7.3-xmlrpc php7.3-soap php7.3-gd php7.3-xml php7.3-intl php7.3-mysql php7.3-cli php7.3-zip php7.3-curl```
-After installing PHP 7.3, run the commands below to open PHP default config file for Nginx…
+Add ondrej/php PPA
 ```
-sudo vim /etc/php/7.3/fpm/php.ini
+sudo apt install apt-transport-https lsb-release ca-certificates
+sudo wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+sudo sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+sudo apt update
 ```
+Now we can install PHP and all the dependencies WordPress needs to run:
+```
+w we can install PHP and all the dependencies WordPress needs to run:
+$ sudo apt-get update && sudo apt-get install -y \
+    imagemagick \
+    php7.1-fpm php7.1-mysqli php7.1-curl php7.1-gd php7.1-geoip php7.1-xml \
+    php7.1-xmlrpc php7.1-imagick php7.1-mbstring php7.1-ssh2 php7.1-redis
+
+```
+## 9. Update Nginx to work with PHP
+First, edit the default configuration: $ vim /etc/nginx/nginx.conf
+
+Here, change ```user www-data;``` and ```worker_processes auto;```
+```$ vim /etc/nginx/conf.d/default.conf```
+Here, change ```server_name _;```, then in ```location /``` block, add ```index.php``` so that the PHP files are read by Nginx. Then uncomment the ```location ~ \.php$``` block and change ```fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;```
+
+Also, in this block, change the ```root /usr/share/nginx/html.```
+
+First check whether Nginx configuration is in order, then reload it:
+```
+$ service nginx configtest
+$ service nginx reload
+```
+
+
+
+
+
+   
+
 
