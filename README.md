@@ -6,7 +6,6 @@ I use [cmder](https://cmder.net/) when on windows, else the shell. You are free 
 
 ## 3. First thing first, UPDATE the instance
 The instance are created from iso images, so better update. ```$ apt-get update```
-```$ apt-get upgrade``` or you can run ```apt-get update && apt-get upgrade```
 
 Now install sudo
 ``` apt-get install sudo ```
@@ -126,27 +125,210 @@ sudo apt update
 ```
 Now we can install PHP and all the dependencies WordPress needs to run:
 ```
-w we can install PHP and all the dependencies WordPress needs to run:
-$ sudo apt-get update && sudo apt-get install -y \
-    imagemagick \
-    php7.1-fpm php7.1-mysqli php7.1-curl php7.1-gd php7.1-geoip php7.1-xml \
-    php7.1-xmlrpc php7.1-imagick php7.1-mbstring php7.1-ssh2 php7.1-redis
 
+sudo apt install php7.2-fpm php7.2-common php7.2-mbstring php7.2-xmlrpc php7.2-soap php7.2-gd php7.2-xml php7.2-intl php7.2-mysql php7.2-cli php7.2-zip php7.2-curl
 ```
 ## 9. Update Nginx to work with PHP
-First, edit the default configuration: $ vim /etc/nginx/nginx.conf
 
-Here, change ```user www-data;``` and ```worker_processes auto;```
-```$ vim /etc/nginx/conf.d/default.conf```
-Here, change ```server_name _;```, then in ```location /``` block, add ```index.php``` so that the PHP files are read by Nginx. Then uncomment the ```location ~ \.php$``` block and change ```fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;```
 
-Also, in this block, change the ```root /usr/share/nginx/html.```
 
-First check whether Nginx configuration is in order, then reload it:
+
+```sudo nano /etc/php/7.2/fpm/php.ini```
+
+Then make the changes on the following lines below in the file and save. The value below are great settings to apply in your environments.
+
 ```
-$ service nginx configtest
-$ service nginx reload
+file_uploads = On
+allow_url_fopen = On
+memory_limit = 256M
+upload_max_filesize = 100M
+cgi.fix_pathinfo=0
+max_execution_time = 360
+date.timezone = America/Chicago
 ```
+Now reload PHP-FPM: ```sudo systemctl restart nginx.service
+sudo systemctl restart php7.2-fpm.service```
+
+## 10. Create Wordpress DB
+Now that you’ve install all the packages that are required, continue below to start configuring the servers. First run the commands below to create WordPress database.
+
+Run the commands below to logon to the database server. When prompted for a password, type the root password you created above.
+``` sudo mysql -u root -p ```
+Then create a database called wordpress
+``` CREATE DATABASE wordpress; ```
+Create a database user called wordpressuser with new password
+``` CREATE USER 'wordpressuser'@'localhost' IDENTIFIED BY 'new_password_here';```
+Then grant the user full access to the database.
+``` GRANT ALL ON wordpress.* TO 'wordpressuser'@'localhost' IDENTIFIED BY 'user_password_here' WITH GRANT OPTION; ```
+
+ ## 11. Install Wordpress
+ First create a directory that will hold the WordPress core for your domain: ```$ sudo mkdir -p /var/www/html/example.com ``` (change with your domain)
+
+Then, navigate to the Release archive and right click latest tar.gz and choose copy link address.
+
+```
+$ cd /var/www/html/example.com
+$ sudo wget https://wordpress.org/latest.tar.gz
+$ sudo tar -zxf latest.tar.gz
+$ sudo mv wordpress/* .
+$ sudo rm -rf wordpress latest.tar.gz
+```
+
+ 
+## 12. Then run the commands below to set the correct permissions for WordPress to function.
+```
+sudo chown -R www-data:www-data /var/www/html/wordpress/
+sudo chmod -R 755 /var/www/html/wordpress/
+```
+
+## 13. Configure Nginx HTTP Server
+Finally, configure Apahce2 site configuration file for WordPress. This file will control how users access WordPress content. Run the commands below to create a new configuration file called wordpress
+``` sudo vim /etc/nginx/sites-available/wordpress ```
+
+Then copy and paste the content below into the file and save it. Replace the highlighted line with your own domain name and directory root location.
+
+```
+server {
+    listen 80;
+    listen [::]:80;
+    root /var/www/html/wordpress;
+    index  index.php index.html index.htm;
+    server_name  example.com www.example.com;
+
+     client_max_body_size 100M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+         include snippets/fastcgi-php.conf;
+         fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
+         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+         include fastcgi_params;
+    }
+}
+```
+Save the file and exit.
+
+## 14. Enable WP Site
+After configuring the VirtualHost above, enable it by running the commands below, then restart Nginx server…
+``` sudo ln -s /etc/nginx/sites-available/wordpress /etc/nginx/sites-enabled/ ```
+
+Reload ngix , before reloading always run a config test. Now if your domain is pointed to the server you can view the wp config page. Congrats
+
+## 15. Configure Wordpress
+Now that Nginx is configured, run the commands below to create WordPress wp-config.php file.
+``` sudo mv /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php ```
+
+Then run the commands below to open WordPress configuration file.
+``` sudo vim /var/www/html/wordpress/wp-config.php ```
+
+Edit the db settings
+```
+// ** MySQL settings - You can get this info from your web host ** //
+/** The name of the database for WordPress */
+define('DB_NAME', 'wpdb');
+
+/** MySQL database username */
+define('DB_USER', 'wpuser');
+
+/** MySQL database password */
+define('DB_PASSWORD', 'user_password_here');
+
+/** MySQL hostname */
+define('DB_HOST', 'localhost');
+
+/** Database Charset to use in creating database tables. */
+define('DB_CHARSET', 'utf8');
+
+/** The Database Collate type. Don't change this if in doubt. */
+define('DB_COLLATE', '');
+```
+
+## Step 16: Install Let’s Encrypt Client
+To get Let’s Encrypt free SSL/TLS certificates on your Ubuntu machine, you should first install its client. The client helps automate the process for you. To install it, run the commands below.
+
+``` sudo apt-get install python-certbot-nginx```
+
+## Step 17: Obtaining your free SSL/TLS Certificates
+After installing Let’s Encrypt Certbot client module for Nginx, run the commands below to obtain your free Let’s Encrypt SSL/TLS certificate the domain specified… make sure to replace example.com with your own domain..
+``` sudo certbot --nginx -m admin@example.com -d example.com -d www.example.com ```
+accept the TOS, If you want to share email share else choose N, and the last step is very important.
+```
+e choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
+-------------------------------------------------------------------------------
+1: No redirect - Make no further changes to the webserver configuration.
+2: Redirect - Make all requests redirect to secure HTTPS access. Choose this for
+new sites, or if you're confident your site works on HTTPS. You can undo this
+change by editing your web server's configuration.
+-------------------------------------------------------------------------------
+Select the appropriate number [1-2] then [enter] (press 'c' to cancel): 2
+```
+Pick option 2 to redirect all traffic over HTTPS. This is important!
+
+After that, the SSL client should install the cert and configure your website to redirect all traffic over HTTPS.
+```
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Congratulations! You have successfully enabled https://hira.edu.mv and
+https://www.hira.edu.mv
+
+You should test your configuration at:
+https://www.ssllabs.com/ssltest/analyze.html?d=hira.edu.mv
+https://www.ssllabs.com/ssltest/analyze.html?d=www.hira.edu.mv
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+IMPORTANT NOTES:
+ - Congratulations! Your certificate and chain have been saved at:
+   /etc/letsencrypt/live/hira.edu.mv/fullchain.pem
+   Your key file has been saved at:
+   /etc/letsencrypt/live/hira.edu.mv/privkey.pem
+   Your cert will expire on 2019-10-12. To obtain a new or tweaked
+   version of this certificate in the future, simply run certbot again
+   with the "certonly" option. To non-interactively renew *all* of
+   your certificates, run "certbot renew"
+ - Your account credentials have been saved in your Certbot
+   configuration directory at /etc/letsencrypt. You should make a
+   secure backup of this folder now. This configuration directory will
+   also contain certificates and private keys obtained by Certbot so
+   making regular backups of this folder is ideal.
+ - If you like Certbot, please consider supporting our work by:
+
+   Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+   Donating to EFF:                    https://eff.org/donate-le
+ ```
+ Your sites config file will be updated by Let's Encrypt certbot. Check :
+ ```sudo vim /etc/nginx/sites-available/hira.edu.mv```
+ You should see
+ ```
+   listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+    if ($scheme != "https") {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    # Redirect non-https traffic to https
+    # if ($scheme != "https") {
+    #     return 301 https://$host$request_uri;
+    # } # managed by Certbot
+```
+You’ll have to manually renew the certificates after every 3 months. You’ll get an email reminder to reset when the certificates are about to expire. To test the renewal process run the commands below.
+``` sudo certbot renew --dry-run ```
+To setup a process to automatically renew the certificates, add a cron job to execute the renewal process.
+``` sudo crontab -e ```
+
+
+
+
+
+
+
+ 
+
 
 
 
