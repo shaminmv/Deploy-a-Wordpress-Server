@@ -146,6 +146,7 @@ cgi.fix_pathinfo=0
 max_execution_time = 360
 date.timezone = America/Chicago
 ```
+If you are getting nginx timeout error ; you may want to increase max_execution_time to may be 290000 ?
 Now reload PHP-FPM: ```sudo systemctl restart nginx.service
 sudo systemctl restart php7.2-fpm.service```
 
