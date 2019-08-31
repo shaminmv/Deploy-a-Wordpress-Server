@@ -112,11 +112,11 @@ Restart MariaDB server
 ## 8. Install Install PHP
 JJust like with Nginx, we need to create two files: the apt source file, which points to the repository and key file, which is used to verify the integrity of the repository:
 ```
-$ echo "deb https://packages.sury.org/php/ stretch main" > \
+$ sudo echo "deb https://packages.sury.org/php/ stretch main" >sudo \
   /etc/apt/sources.list.d/php.list
-$ curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+$ sudo curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 Now we can install PHP and all the dependencies WordPress needs to run:
-$ apt-get update && apt-get install -y \
+$ sudo apt-get update && sudo apt-get install -y \
     imagemagick \
     php7.1-fpm php7.1-mysqli php7.1-curl php7.1-gd php7.1-geoip php7.1-xml \
     php7.1-xmlrpc php7.1-imagick php7.1-mbstring php7.1-ssh2 php7.1-redis
@@ -218,7 +218,7 @@ server {
 
     location ~ \.php$ {
          include snippets/fastcgi-php.conf;
-         fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
+         fastcgi_pass unix:/var/run/php/php7.1-fpm.sock;
          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
          include fastcgi_params;
     }
@@ -267,7 +267,7 @@ In console/terminal, do the following:
 ```
 $ su webmaster
 $ cd
-$ ssh-keygen -t rsa -b 4096 (name it wp_rsa)
+$ ssh-keygen -t rsa -b 4096 (name it wp_rsa) (no password just enter!)
 $ chmod 0640 wp_rsa*
 $ mkdir .ssh
 $ cp wp_rsa.pub .ssh/authorized_keys
@@ -279,6 +279,16 @@ Finally:
 $ chmod 0700 .ssh
 $ exit
 ```
+Next, add the following lines to wp-config.php:
+```
+define('FTP_PUBKEY','/home/webmaster/wp_rsa.pub');
+define('FTP_PRIKEY','/home/webmaster/wp_rsa');
+define('FTP_USER','webmaster');
+define('FTP_PASS','');
+define('FTP_HOST','127.0.0.1:22');
+define('FS_METHOD', 'ssh2');
+```
+Now go back to WordPress and install "Redis Object Cache", and activate it.
 
 
 ## Step 16: Install Let’s Encrypt Client
