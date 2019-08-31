@@ -265,6 +265,29 @@ define('DB_CHARSET', 'utf8');
 define('DB_COLLATE', '');
 ```
 
+## Step 16: Wordpress plugin installation settings
+Visit the domain in your browser to start the WordPress wizard. Create a new account and log into WordPress to start installing.
+
+Visit the plugins page and search for "redis cache" and try to install "Redis Object Cache". It will fail, so we need to configure access.
+
+In console/terminal, do the following:
+```
+$ su webmaster
+$ cd
+$ ssh-keygen -t rsa -b 4096 (name it wp_rsa)
+$ chmod 0640 wp_rsa*
+$ mkdir .ssh
+$ cp wp_rsa.pub .ssh/authorized_keys
+$ chmod 0644 .ssh/authorized_keys
+```
+```$ vim .ssh/authorized_keys``` and prepend ```from="127.0.0.1"```
+Finally:
+```
+$ chmod 0700 .ssh
+$ exit
+```
+
+
 ## Step 16: Install Let’s Encrypt Client
 To get Let’s Encrypt free SSL/TLS certificates on your Ubuntu machine, you should first install its client. The client helps automate the process for you. To install it, run the commands below.
 
