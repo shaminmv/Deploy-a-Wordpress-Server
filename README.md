@@ -126,7 +126,7 @@ $ sudo apt-get update && sudo apt-get install -y \
 
 
 
-```sudo nano /etc/php/7.2/fpm/php.ini```
+```sudo vim /etc/php/7.1/fpm/php.ini```
 
 Then make the changes on the following lines below in the file and save. The value below are great settings to apply in your environments.
 
@@ -141,7 +141,7 @@ date.timezone = America/Chicago
 ```
 If you are getting nginx timeout error ; you may want to increase max_execution_time to may be 290000 ?
 Now reload PHP-FPM: ```sudo systemctl restart nginx.service
-sudo systemctl restart php7.2-fpm.service```
+sudo systemctl restart php7.1-fpm.service```
 
 ## 10. Create Wordpress DB
 Now that you’ve install all the packages that are required, continue below to start configuring the servers. First run the commands below to create WordPress database.
