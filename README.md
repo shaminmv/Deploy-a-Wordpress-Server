@@ -140,8 +140,8 @@ max_execution_time = 360
 date.timezone = America/Chicago
 ```
 If you are getting nginx timeout error ; you may want to increase max_execution_time to may be 290000 ?
-Now reload PHP-FPM: ```sudo systemctl restart nginx.service
-sudo systemctl restart php7.1-fpm.service```
+Now reload PHP-FPM: ```sudo service ngix restart
+sudo php7.1-fpm restart```
 
 ## 10. Create Wordpress DB
 Now that you’ve install all the packages that are required, continue below to start configuring the servers. First run the commands below to create WordPress database.
