@@ -110,23 +110,16 @@ Restart MariaDB server
 
 
 ## 8. Install Install PHP
-Just like with Nginx, we need to create two files: the apt source file, which points to the repository and key file, which is used to verify the integrity of the repository:
+JJust like with Nginx, we need to create two files: the apt source file, which points to the repository and key file, which is used to verify the integrity of the repository:
 ```
-$ echo "deb https://packages.sury.org/php/ stretch main" > sudo \
+$ echo "deb https://packages.sury.org/php/ stretch main" > \
   /etc/apt/sources.list.d/php.list
-$ sudo curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
-```
-Add ondrej/php PPA
-```
-sudo apt install apt-transport-https lsb-release ca-certificates
-sudo wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
-sudo sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
-sudo apt update
-```
+$ curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 Now we can install PHP and all the dependencies WordPress needs to run:
-```
-
-sudo apt install php7.2-fpm php7.2-common php7.2-mbstring php7.2-xmlrpc php7.2-soap php7.2-gd php7.2-xml php7.2-intl php7.2-mysql php7.2-cli php7.2-zip php7.2-curl
+$ apt-get update && apt-get install -y \
+    imagemagick \
+    php7.1-fpm php7.1-mysqli php7.1-curl php7.1-gd php7.1-geoip php7.1-xml \
+    php7.1-xmlrpc php7.1-imagick php7.1-mbstring php7.1-ssh2 php7.1-redis
 ```
 ## 9. Update Nginx to work with PHP
 
