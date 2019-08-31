@@ -290,7 +290,13 @@ define('FS_METHOD', 'ssh2');
 ```
 Now go back to WordPress and install "Redis Object Cache", and activate it.
 
-
+Next, create the uploads directory:
+```
+$ cd /var/www/html/example.com/wp-content
+$ sudo mkdir uploads
+$ sudo chown webmaster:www-data uploads
+$ sudo chmod -R 775 ./uploads
+```
 ## Step 16: Install Let’s Encrypt Client
 To get Let’s Encrypt free SSL/TLS certificates on your Ubuntu machine, you should first install its client. The client helps automate the process for you. To install it, run the commands below.
 
