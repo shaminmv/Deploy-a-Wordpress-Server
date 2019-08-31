@@ -240,10 +240,7 @@ After configuring the VirtualHost above, enable it by running the commands below
 Reload ngix , before reloading always run a config test. Now if your domain is pointed to the server you can view the wp config page. Congrats
 
 ## 15. Configure Wordpress
-Now that Nginx is configured, run the commands below to create WordPress wp-config.php file.
-``` sudo mv /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php ```
-
-Then run the commands below to open WordPress configuration file.
+Now that Nginx is configured, lets WordPress configuration file.
 ``` sudo vim /var/www/html/wordpress/wp-config.php ```
 
 Edit the db settings
