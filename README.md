@@ -177,10 +177,31 @@ $ sudo rm -rf wordpress latest.tar.gz
 
  
 ## 12. Then run the commands below to set the correct permissions for WordPress to function.
+
+Add a user which will be the owner of WordPress files ```$ adduser --ingroup www-data webmaster```
+
+Visit the WordPress Codex to check recommended permissions on directories and files
+
 ```
-sudo chown -R www-data:www-data /var/www/html/wordpress/
-sudo chmod -R 755 /var/www/html/wordpress/
+$ sudo find . -type d -exec chmod 755 {} \;
+$ sudo find . -type f -exec chmod 644 {} \;
+$ sudo cp wp-config-sample.php wp-config.php
+$ sudo chmod 660 wp-config.php
+$ sudo chown -R webmaster:www-data .
 ```
+Next, disable cron:
+```
+$ su webmaster
+$ crontab -e 
+
+```
+and put the following code at the end of the file:
+```
+*/15 * * * * cd /var/www/example.com; php wp-cron.php > /dev/null 2>&1
+```
+Save and close the file, then:
+```$ exit``` to return back to root ```$ sudo vim wp-config.php``` to add ```define('DISABLE_WP_CRON', true);``` and configure database credentials and [salts](https://api.wordpress.org/secret-key/1.1/salt/)
+
 
 ## 13. Configure Nginx HTTP Server
 Finally, configure Apahce2 site configuration file for WordPress. This file will control how users access WordPress content. Run the commands below to create a new configuration file called wordpress
