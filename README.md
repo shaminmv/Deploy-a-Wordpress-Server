@@ -138,6 +138,12 @@ upload_max_filesize = 100M
 cgi.fix_pathinfo=0
 max_execution_time = 360
 date.timezone = America/Chicago
+
+post_max_size 64M
+upload_max_filesize 64M
+max_file_uploads 128M
+max_input_vars 5000
+
 ```
 If you are getting nginx timeout error ; you may want to increase max_execution_time to may be 290000 ?
 Now reload PHP-FPM: ```sudo service ngix restart
