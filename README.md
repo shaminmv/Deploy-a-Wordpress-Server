@@ -370,7 +370,10 @@ IMPORTANT NOTES:
 You’ll have to manually renew the certificates after every 3 months. You’ll get an email reminder to reset when the certificates are about to expire. To test the renewal process run the commands below.
 ``` sudo certbot renew --dry-run ```
 To setup a process to automatically renew the certificates, add a cron job to execute the renewal process.
-``` sudo crontab -e ```
+``` sudo crontab -e ``` (As root!!)
+``` 0 1 * * * /usr/bin/certbot renew & > /dev/null ```
+This will renew the certificate every 30 days.
+
 
 
 
